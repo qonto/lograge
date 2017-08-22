@@ -5,8 +5,11 @@ module Lograge
         load_dependencies
         event = LogStash::Event.new(data)
 
+        event.delete(:headers) if event[:headers].class != Hash
+
         event['message'] = "[#{data[:status]}] #{data[:method]} #{data[:path]} (#{data[:controller]}##{data[:action]})" if type == 'controller'
         event['message'] = data[:message] if type == 'job'
+
         event.to_json
       end
 
