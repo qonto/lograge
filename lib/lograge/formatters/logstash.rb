@@ -3,11 +3,9 @@ module Lograge
     class Logstash
       def call(data, type = 'controller')
         load_dependencies
+        data.delete(:headers) if data[:headers].class != Hash # NOTE:for rails 5.1 support
         event = LogStash::Event.new(data)
 
-        binding.pry
-
-        event.data.delete(:headers) if event.data[:headers].class != Hash
         event['message'] = "[#{data[:status]}] #{data[:method]} #{data[:path]} (#{data[:controller]}##{data[:action]})" if type == 'controller'
         event['message'] = data[:message] if type == 'job'
         event.to_json
