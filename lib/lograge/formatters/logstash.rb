@@ -7,6 +7,8 @@ module Lograge
 
         event.delete(:headers) if event[:headers].class != Hash
 
+        binding.pry
+
         event['message'] = "[#{data[:status]}] #{data[:method]} #{data[:path]} (#{data[:controller]}##{data[:action]})" if type == 'controller'
         event['message'] = data[:message] if type == 'job'
 
