@@ -147,7 +147,7 @@ module Lograge
   end
 
   def attach_to_active_job
-    Lograge::JobSubscriber.attach_to :active_job
+    Lograge::JobSubscriber.attach_to :active_job, lograge_config.filter_active_job_params
   end
 
   def setup_custom_payload
