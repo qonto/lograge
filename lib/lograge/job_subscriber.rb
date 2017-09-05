@@ -2,6 +2,17 @@ require 'active_job/logging'
 
 module Lograge
   class JobSubscriber < ActiveJob::Logging::LogSubscriber
+    FILTERED = "FILTERED".freeze
+
+    class << self
+      attr_reader :filtered_params
+
+      def attach_to(subscriber, filtered_params)
+        super(subscriber)
+        @filtered_params = filtered_params
+      end
+    end
+
     def enqueue(event)
       job = event.payload[:job]
       message = "Enqueued #{job.class.name} (Job ID: #{job.job_id}) to #{queue_name(event)}"
@@ -71,12 +82,30 @@ module Lograge
 
     def args_info(job)
       binding.pry unless job.arguments.empty?
-      arguments = filter_parameters(job.arguments)
-      arguments.map { |arg| arg.try(:to_global_id).try(:to_s) || arg }
+      filter_parameters(job.arguments)
+      job.arguments.map { |arg| arg.try(:to_global_id).try(:to_s) || arg }
     end
 
     def filter_parameters(arguments)
-      arguments
+      self.class.filtered_params.each do |filtered_param|
+        arguments.each do |argument|
+          next unless argument.is_a?(Hash)
+          argument[filtered_param] = FILTERED if argument[filtered_param]
+
+          argument.each do |_, value|
+            next unless value.is_a?(Hash)
+            value[filtered_param] = FILTERED if value[filtered_param]
+
+            value.each do |_, params|
+              next unless params.is_a?(Array)
+              params&.each do |param|
+                next unless param.is_a?(Hash)
+                param[filtered_param] = FILTERED if param[filtered_param]
+              end
+            end
+          end
+        end
+      end
     end
 
     def before_format(data, payload)
