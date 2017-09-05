@@ -70,12 +70,12 @@ module Lograge
     end
 
     def args_info(job)
+      binding.pry unless job.arguments.empty?
       arguments = filter_parameters(job.arguments)
       arguments.map { |arg| arg.try(:to_global_id).try(:to_s) || arg }
     end
 
     def filter_parameters(arguments)
-      binding.pry
       arguments
     end
 
