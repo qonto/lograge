@@ -70,7 +70,13 @@ module Lograge
     end
 
     def args_info(job)
-      job.arguments.map { |arg| arg.try(:to_global_id).try(:to_s) || arg }
+      arguments = filter_parameters(job.arguments)
+      arguments.map { |arg| arg.try(:to_global_id).try(:to_s) || arg }
+    end
+
+    def filter_parameters(arguments)
+      binding.pry
+      arguments
     end
 
     def before_format(data, payload)
