@@ -8,8 +8,9 @@ module Lograge
       attr_reader :filtered_params
 
       def attach_to(subscriber, filtered_params)
+        binding.pry
         super(subscriber)
-        @filtered_params = filtered_params
+        @filtered_params = filtered_params || []
       end
     end
 

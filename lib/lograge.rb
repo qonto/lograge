@@ -18,7 +18,7 @@ require 'active_support/core_ext/string/inflections'
 module Lograge
   module_function
 
-  mattr_accessor :logger, :application, :ignore_tests
+  mattr_accessor :logger, :application, :ignore_tests, :filter_active_job_params
 
   # Custom options that will be appended to log line
   #
@@ -147,6 +147,7 @@ module Lograge
   end
 
   def attach_to_active_job
+    binding.pry
     Lograge::JobSubscriber.attach_to :active_job, lograge_config.filter_active_job_params
   end
 
