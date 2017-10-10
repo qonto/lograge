@@ -34,6 +34,7 @@ module Lograge
 
     def process_event(event, message, type)
       data = extract_metadata(event)
+      data.merge! job_args(event)
       data.merge! extract_exception(event)
       data.merge! extract_scheduled_at(event) if type == 'enqueue_at'
       data.merge! extract_duration(event) if type == 'perform'
@@ -51,10 +52,11 @@ module Lograge
     end
 
     def extract_metadata(event)
-      { job_id: event.payload[:job].job_id,
+      {
+        job_id: event.payload[:job].job_id,
         queue_name: event.payload[:job].queue_name,
-        job_class: event.payload[:job].class.to_s,
-        job_args: args_info(event.payload[:job]).compact }
+        job_class: event.payload[:job].class.to_s
+      }
     end
 
     def extract_duration(event)
@@ -71,6 +73,25 @@ module Lograge
 
     def args_info(job)
       job.arguments.map { |arg| arg.try(:to_global_id).try(:to_s) || arg }
+    end
+
+    def job_args(event)
+      job = event.payload[:job]
+      arguments = args_info(job).compact
+      return { job_data: arguments } if is_string_array?(arguments)
+
+      data = []
+      arguments.delete_if do |arg|
+        data << arg if arg.is_a?(String)
+      end
+
+      arguments << { additional_data: data }
+
+      { job_args: arguments }
+    end
+
+    def is_string_array?(arguments)
+      arguments.all? { |a| a.is_a?(String) }
     end
 
     def before_format(data, payload)
